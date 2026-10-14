@@ -17,8 +17,10 @@ p { color:#bebed0; line-height:1.45; font-size:.95rem; margin:.3rem 0 1.1rem; }
 .panel { background:#1b1d2b; border:1px solid #34344b; border-radius:20px; overflow:hidden; }
 model-viewer { display:block; width:100%; height:clamp(315px,58vw,510px); background:radial-gradient(circle at 50% 35%, #313049 0%, #1e1e32 57%, #151827 100%); --progress-bar-color:#ff65a8; }
 model-viewer:focus-visible { outline:3px solid #ff76b9; outline-offset:-3px; }
-#ar-button { position:absolute; right:18px; bottom:18px; border:0; border-radius:16px; padding:14px 18px; color:#240f1f; background:#ff76b9; font-weight:750; font-size:1rem; box-shadow:0 4px 18px #0006; cursor:pointer; }
-#ar-button:focus-visible,button:focus-visible,a:focus-visible { outline:3px solid #ffe1f1; outline-offset:3px; }
+#launch-ar { background:#ff76b9; color:#240f1f; border-color:#ff76b9; font-weight:800; }
+.ar-feedback { margin:10px 2px; padding:12px 14px; border-radius:12px; background:#30283e; color:#f9deee; font-size:.88rem; }
+.ar-feedback[hidden] { display:none; }
+button:focus-visible,a:focus-visible { outline:3px solid #ffe1f1; outline-offset:3px; }
 .loader { position:absolute; left:18px; bottom:23px; font-size:.85rem; color:#ebe6ff; background:#171527bf; padding:7px 10px; border-radius:12px; }
 .chooser { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:15px 0; }
 .chooser button { padding:12px 8px; border:1px solid #484357; background:#252638; color:#ebebf7; border-radius:13px; font-weight:650; font-size:clamp(.76rem,2.6vw,.92rem); cursor:pointer; min-height:53px; }
@@ -45,17 +47,18 @@ model-viewer:focus-visible { outline:3px solid #ff76b9; outline-offset:-3px; }
   </nav>
   <section class="panel" aria-label="Interactive 3D model">
     <model-viewer id="viewer" src="models/cyclops.glb" ios-src="models/cyclops.usdz" alt="Cone Head Cyclops, a blue one-eyed 3D character with a red party hat" ar ar-modes="quick-look scene-viewer webxr" camera-controls touch-action="pan-y" auto-rotate rotation-per-second="12deg" auto-rotate-delay="500" shadow-intensity="1" shadow-softness="1" exposure="1" environment-image="neutral" interaction-prompt="auto" loading="eager">
-      <button type="button" slot="ar-button" id="ar-button" aria-label="View this model in augmented reality">View in AR ↗</button>
       <div slot="progress-bar" class="loader" id="loader" role="status">Loading 3D model…</div>
     </model-viewer>
   </section>
   <div id="model-title" class="description" aria-live="polite">Cone Head Cyclops</div>
   <p id="model-description">Original hand-painted 3D character with stickers and a striped party hat.</p>
   <div class="tools">
+    <button type="button" id="launch-ar" aria-label="View selected model in augmented reality">View in AR ↗</button>
     <button type="button" id="rotate">Pause rotation</button>
     <button type="button" id="reset">Reset camera</button>
     <a id="usdz-link" href="models/cyclops.usdz">Open USDZ directly (iPhone)</a>
   </div>
+  <p id="ar-feedback" class="ar-feedback" role="status" aria-live="polite" hidden></p>
   <p class="note"><strong>On iPhone:</strong> Tap View in AR to open Apple Quick Look. <strong>On Android without ARCore:</strong> The 3D preview works, but AR may be unavailable. WebAR must be hosted on HTTPS for the full AR workflow.</p>
   <p class="small">Models: Cone Head Cyclops · Armrest chair · Bookshelf. Drag to orbit; pinch to zoom.</p>
 </main>
@@ -68,11 +71,37 @@ model-viewer:focus-visible { outline:3px solid #ff76b9; outline-offset:-3px; }
     bookshelf: { title: 'Bookshelf', description: 'A low-poly wooden bookshelf with colorful books and a small plant.', alt: 'Three-dimensional bookshelf with books and plant' }
   };
   const buttons = [...document.querySelectorAll('[data-model]')];
+  const launchAR = document.getElementById('launch-ar');
+  const arFeedback = document.getElementById('ar-feedback');
   const rotate = document.getElementById('rotate');
   const reset = document.getElementById('reset');
   const usdz = document.getElementById('usdz-link');
   const loader = document.getElementById('loader');
   let selected = 'cyclops';
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function showARMessage(message) {
+    arFeedback.textContent = message;
+    arFeedback.hidden = false;
+  }
+  launchAR.addEventListener('click', () => {
+    arFeedback.hidden = true;
+    // The in-viewer AR slot disappears when <model-viewer> detects no AR support.
+    // This regular button remains visible and supplies an explanation instead.
+    if (viewer.canActivateAR && typeof viewer.activateAR === 'function') {
+      try {
+        Promise.resolve(viewer.activateAR()).catch(() => {
+          showARMessage('AR could not start. Try Safari on an AR-capable iPhone or Chrome on an ARCore-supported Android device.');
+        });
+      } catch (e) {
+        showARMessage('AR could not start in this browser. Try Safari on an AR-capable iPhone.');
+      }
+    } else if (isIOS) {
+      showARMessage('AR is not available inside this browser. Open this website in Safari, or tap “Open USDZ directly (iPhone)” below.');
+    } else {
+      showARMessage('AR is not available on this phone or browser. You can still rotate and zoom the 3D model here. To place it in your room, use Safari on a supported iPhone or Chrome on an ARCore-supported Android device.');
+    }
+  });
   buttons.forEach(b => b.addEventListener('click', () => {
     const key = b.dataset.model;
     if (key === selected || !models[key]) return;
@@ -86,6 +115,7 @@ model-viewer:focus-visible { outline:3px solid #ff76b9; outline-offset:-3px; }
     document.getElementById('model-title').textContent = info.title;
     document.getElementById('model-description').textContent = info.description;
     loader.textContent = 'Loading 3D model…';
+    arFeedback.hidden = true;
   }));
   rotate.addEventListener('click', () => {
     viewer.autoRotate = !viewer.autoRotate;
