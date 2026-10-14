@@ -1,0 +1,13 @@
+TEC611 WEBAR - GITHUB PAGES
+
+1. Go to https://github.com/new
+2. Repository name: tec611-lab2-webar
+3. Set repository Public and create it.
+4. Add file > Upload files > upload ALL EXTRACTED CONTENTS
+   (index.html, .nojekyll, README.md, models folder, etc.). Commit.
+5. Settings > Pages > Deploy from a branch > main > /(root) > Save.
+6. Visit URL shown on the Pages settings screen.
+7. On your iPhone Safari: choose Cyclops or Chair and tap View in AR.
+8. Capture a 3D viewer screenshot and an actual AR screenshot.
+
+This package is ready to upload; it has NOT been published yet.
