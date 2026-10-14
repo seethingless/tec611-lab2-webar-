@@ -1,7 +1,0 @@
-/models/*.usdz
-  Content-Type: model/vnd.usdz+zip
-  Cache-Control: public, max-age=3600
-
-/models/*.glb
-  Content-Type: model/gltf-binary
-  Cache-Control: public, max-age=3600
