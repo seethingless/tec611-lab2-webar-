@@ -18,36 +18,58 @@
   .controls { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; align-items:center; }
   a,.controls select { color:#fff; border-radius:10px; min-height:40px; padding:9px 11px; background:#292739; border:1px solid #65586b; font-size:.87rem; text-decoration:none; }
   .controls select { flex:1; min-width:122px; }
+  .controls button { color:#fff; border-radius:10px; min-height:40px; padding:9px 11px; background:#292739; border:1px solid #65586b; font-size:.87rem; cursor:pointer; }
   #status { margin:0; font-size:.9rem; line-height:1.4; color:#ffe0ed; }
   .tiny { font-size:.77rem; color:#d3ccde; margin:6px 0 0; line-height:1.45; }
   .marker { color:#ffe1f2; text-decoration:underline; }
   @media (max-height:480px) { .top{padding:8px 12px;} .bottom{padding:8px 12px;} h1{font-size:.95rem;} .sub{font-size:.73rem;} }
 </style>
 <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-<script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+<script src="https://raw.githack.com/AR-js-org/AR.js/3.4.8/aframe/build/aframe-ar.js"></script>
 <script>
-  // Scale and center each of the existing GLB assets on the Hiro marker.
-  // This runs on model-loaded and does not require native ARCore or ARKit.
+  // Fit model dimensions in local marker coordinates, not the tracked marker's
+  // changing world coordinates. Correct Z-up exports for chair and bookshelf.
   AFRAME.registerComponent('fit-marker-model', {
     init: function () {
       this.el.addEventListener('model-loaded', () => {
-        const mesh = this.el.getObject3D('mesh');
-        if (!mesh) return;
-        const bounds = new THREE.Box3().setFromObject(mesh);
-        const size = bounds.getSize(new THREE.Vector3());
-        const center = bounds.getCenter(new THREE.Vector3());
-        if (!Number.isFinite(size.x) || Math.max(size.x,size.y,size.z) < 0.001) return;
-        // A 1x1 Hiro marker: keep the model roughly within its footprint.
-        const scaling = Math.min(0.78/Math.max(size.x,size.z,0.001), 0.85/Math.max(size.y,0.001), 6);
-        this.el.object3D.scale.setScalar(scaling);
-        this.el.object3D.position.set(-center.x*scaling, -bounds.min.y*scaling, -center.z*scaling);
-        const status = document.getElementById('status');
-        if(status && !document.getElementById('hiro').object3D.visible)
-          status.textContent = 'Model loaded. Point your camera at the Hiro marker.';
+        const T = AFRAME.THREE;
+        const root = this.el.getObject3D('mesh');
+        if (!root) return;
+        const choice = document.getElementById('choice').value;
+        const zUp = choice === 'chair' || choice === 'bookshelf';
+        const testRoot = new T.Group();
+        testRoot.add(root.clone(true));
+        testRoot.rotation.x = zUp ? -Math.PI / 2 : 0;
+        testRoot.updateMatrixWorld(true);
+        const bounds = new T.Box3().setFromObject(testRoot);
+        const size = bounds.getSize(new T.Vector3());
+        const center = bounds.getCenter(new T.Vector3());
+        if (bounds.isEmpty() || ![size.x, size.y, size.z].every(Number.isFinite)) {
+          window.setModelState('error', 'Invalid 3D geometry.');
+          return;
+        }
+        const scale = Math.min(
+          0.78 / Math.max(size.x, size.z, 0.001),
+          0.85 / Math.max(size.y, 0.001),
+          6
+        );
+        // The GLB is held in the marker's local XZ plane, with Y pointing up.
+        const el3d = this.el.object3D;
+        el3d.rotation.set(zUp ? -Math.PI / 2 : 0, 0, 0);
+        el3d.scale.setScalar(scale);
+        // Position must account for the entity rotation. Use the negative bounding
+        // box center/ground in the marker parent coordinate system.
+        const desiredOffset = new T.Vector3(
+          -center.x * scale,
+          0.025 - bounds.min.y * scale,
+          -center.z * scale
+        );
+        // Local entity translation is in parent coordinates; no world-space terms.
+        el3d.position.copy(desiredOffset);
+        window.setModelState('ready', choice);
       });
-      this.el.addEventListener('model-error', () => {
-        const status = document.getElementById('status');
-        if(status) status.textContent = 'The model could not load. Check your connection and model files.';
+      this.el.addEventListener('model-error', e => {
+        window.setModelState('error', (e && e.detail && e.detail.src) || 'Model load failed.');
       });
     }
   });
@@ -65,15 +87,18 @@
     </select>
     <a href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" target="_blank" rel="noopener">Show Hiro marker ↗</a>
     <a href="index.html">← Gallery</a>
+    <button type="button" id="test-cube-toggle">Show test cube</button>
   </div>
 </div>
 <div class="bottom" role="status" aria-live="polite">
   <p id="status">Starting camera. Allow camera access if your browser asks…</p>
+  <p id="diagnostics" class="tiny">Tracking: waiting · Model: loading</p>
   <p class="tiny">Use Chrome or Safari over HTTPS. This is marker-based AR: the object follows the marker rather than tracking a floor. Camera and WebGL support are still required.</p>
 </div>
 <a-scene embedded vr-mode-ui="enabled:false" loading-screen="enabled:false" renderer="antialias:true; colorManagement:true" arjs="sourceType:webcam; debugUIEnabled:false;">
   <a-assets timeout="25000"></a-assets>
   <a-marker id="hiro" preset="hiro" emitevents="true" smooth="true" smooth-count="5" smooth-tolerance="0.01" smooth-threshold="2">
+    <a-box id="test-cube" visible="false" position="0 0.18 0" width="0.25" height="0.25" depth="0.25" color="#00E5FF"></a-box>
     <a-entity id="spin" animation="property:rotation; to:0 360 0; dur:13000; easing:linear; loop:true">
       <a-entity id="ar-model" gltf-model="models/cyclops.glb" fit-marker-model></a-entity>
     </a-entity>
@@ -88,20 +113,53 @@
   const model = document.getElementById('ar-model');
   const marker = document.getElementById('hiro');
   const status = document.getElementById('status');
-  const allowed = new Set(['cyclops','chair','bookshelf']);
+  const diagnostics = document.getElementById('diagnostics');
+  const testCube = document.getElementById('test-cube');
+  const testToggle = document.getElementById('test-cube-toggle');
+  const allowed = new Set(['cyclops', 'chair', 'bookshelf']);
   const requested = new URLSearchParams(location.search).get('model');
-  if(allowed.has(requested)) choice.value=requested;
-  const switchModel=()=>{
+  const state = {tracking:false, model:'loading', detail:''};
+
+  function refresh() {
+    diagnostics.textContent = 'Tracking: ' + (state.tracking ? 'FOUND' : 'waiting') +
+      ' · Model: ' + state.model + (state.detail ? ' (' + state.detail + ')' : '');
+    if (state.model === 'error') {
+      status.textContent = '3D model failed to load. Check the model path or try another model. Turn on the test cube to verify rendering.';
+    } else if (state.model === 'loading') {
+      status.textContent = state.tracking
+        ? 'Marker detected! Waiting for 3D model to load…'
+        : 'Loading 3D model. Point the camera at the Hiro marker.';
+    } else {
+      status.textContent = state.tracking
+        ? 'Marker detected · 3D model ready. It should appear above the marker.'
+        : '3D model ready. Point the camera at the Hiro marker.';
+    }
+  }
+  window.setModelState = (kind, detail) => {
+    state.model = kind;
+    state.detail = kind === 'error' ? String(detail).slice(0,100) : '';
+    refresh();
+  };
+  const switchModel=() => {
+    state.model='loading'; state.detail='';
     model.removeAttribute('gltf-model');
     model.object3D.position.set(0,0,0);
+    model.object3D.rotation.set(0,0,0);
     model.object3D.scale.set(1,1,1);
-    model.setAttribute('gltf-model', `models/${choice.value}.glb`);
-    status.textContent = `Loading ${choice.options[choice.selectedIndex].text}…`;
+    model.setAttribute('gltf-model', 'models/' + choice.value + '.glb');
+    refresh();
   };
+  if(allowed.has(requested)) choice.value=requested;
   choice.addEventListener('change', switchModel);
+  marker.addEventListener('markerFound', () => {state.tracking=true; refresh();});
+  marker.addEventListener('markerLost', () => {state.tracking=false; refresh();});
+  testToggle.addEventListener('click', () => {
+    const show = !testCube.getAttribute('visible');
+    testCube.setAttribute('visible', show);
+    testToggle.textContent = show ? 'Hide test cube' : 'Show test cube';
+  });
   if(choice.value !== 'cyclops') switchModel();
-  marker.addEventListener('markerFound', () => status.textContent='Marker found! The 3D model is tracking it.');
-  marker.addEventListener('markerLost', () => status.textContent='Marker lost. Keep the whole Hiro marker visible and well lit.');
+  refresh();
   if (!window.isSecureContext) status.textContent='Camera requires HTTPS. Open this page from GitHub Pages.';
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) status.textContent='This browser cannot access the camera. Try Chrome or Safari.';
 })();
