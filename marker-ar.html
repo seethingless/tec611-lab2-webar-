@@ -48,9 +48,10 @@
           window.setModelState('error', 'Invalid 3D geometry.');
           return;
         }
+        const labModel = ['solar', 'heart', 'lab-model'].includes(choice);
         const scale = Math.min(
-          0.78 / Math.max(size.x, size.z, 0.001),
-          0.85 / Math.max(size.y, 0.001),
+          (labModel ? 0.45 : 0.78) / Math.max(size.x, size.z, 0.001),
+          (labModel ? 0.5 : 0.85) / Math.max(size.y, 0.001),
           6
         );
         // The GLB is held in the marker's local XZ plane, with Y pointing up.
@@ -84,6 +85,9 @@
       <option value="cyclops">👁️ Cyclops</option>
       <option value="chair">🪑 Chair</option>
       <option value="bookshelf">📚 Bookshelf</option>
+      <option value="solar">B1 · Solar panel</option>
+      <option value="heart">B2 · Heart sticker</option>
+      <option value="lab-model">B3 · Blender GLB model</option>
     </select>
     <a href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" target="_blank" rel="noopener">Show Hiro marker ↗</a>
     <a href="index.html">← Gallery</a>
@@ -116,7 +120,8 @@
   const diagnostics = document.getElementById('diagnostics');
   const testCube = document.getElementById('test-cube');
   const testToggle = document.getElementById('test-cube-toggle');
-  const allowed = new Set(['cyclops', 'chair', 'bookshelf']);
+  const paths = {cyclops:'models/cyclops.glb', chair:'models/chair.glb', bookshelf:'models/bookshelf.glb', solar:'lab-b1.glb', heart:'lab-b2.glb', 'lab-model':'lab-b3.glb'};
+  const allowed = new Set(Object.keys(paths));
   const requested = new URLSearchParams(location.search).get('model');
   const state = {tracking:false, model:'loading', detail:''};
 
@@ -146,7 +151,7 @@
     model.object3D.position.set(0,0,0);
     model.object3D.rotation.set(0,0,0);
     model.object3D.scale.set(1,1,1);
-    model.setAttribute('gltf-model', 'models/' + choice.value + '.glb');
+    model.setAttribute('gltf-model', paths[choice.value]);
     refresh();
   };
   if(allowed.has(requested)) choice.value=requested;
