@@ -27,3 +27,8 @@ The gallery links to the examples from Siti Sara Rais's Vibe Coder folder:
 - `B5.html`: interactive solar-panel example with size, rotation, tilt, movement, and reset controls.
 
 All site links are relative to the GitHub Pages project. The existing Cyclops, chair, and bookshelf gallery and marker AR remain available. Camera pages require HTTPS and camera permission; open the Hiro marker on another display or paper. Source examples are attributed to Siti Sara Rais; B1/B2 are exported from her supplied Blender files. No reports or Blender source files are published.
+
+
+## Part B gallery
+
+`part-b.html` provides the same model selection, orbit/zoom, rotation, reset and AR workflow as the Part A gallery. B1–B5 each have a 3D preview and an exercise-specific Camera AR link. B4/B5 previews are self-contained GLBs exported from the boxes and transforms in their original HTML structures; the original camera exercise pages and B5 controls remain available. `?exercise=b1` through `?exercise=b5` select a model directly.

@@ -24,7 +24,7 @@
     const nav = document.createElement('nav');
     nav.setAttribute('aria-label','Lab navigation');
     nav.style.cssText='position:fixed;left:10px;right:10px;top:10px;z-index:10000;display:flex;flex-wrap:wrap;gap:12px;padding:10px;background:#171827ed;color:white;border-radius:10px;font:14px system-ui';
-    for (const [label,href] of [['← Gallery','index.html'],['A2','A2.html'],['B1','B1.html'],['B2','B2.html'],['B3','B3.html'],['B4','B4.html'],['B5','B5.html'],['Hiro marker','https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png']]) {
+    for (const [label,href] of [[/^B[1-5]\.html$/i.test(location.pathname.split('/').pop())?'← Part B':'← Gallery',/^B[1-5]\.html$/i.test(location.pathname.split('/').pop())?'part-b.html':'index.html'],['A2','A2.html'],['B1','B1.html'],['B2','B2.html'],['B3','B3.html'],['B4','B4.html'],['B5','B5.html'],['Hiro marker','https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png']]) {
       const a = document.createElement('a');
       a.textContent=label; a.href=href; a.style.color='#ffbfdc';
       if (label==='Hiro marker') {a.target='_blank';a.rel='noopener';}

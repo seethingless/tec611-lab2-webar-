@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#151623"><meta name="description" content="Explore the five TEC611 Part B lab exercises with 3D previews and Hiro marker camera AR."><title>TEC611 Lab 2 | Part B model gallery</title>
+<script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+<style>
+:root { color-scheme: dark; font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:#10121d; color:#f7f5ff; }
+* { box-sizing:border-box; }
+body { margin:0; min-height:100%; }
+.page { width:min(100%,820px); margin:auto; padding:22px clamp(16px,4vw,32px) 42px; }
+.eyebrow { color:#b8b5d1; font-size:.78rem; font-weight:750; letter-spacing:.12em; }
+h1 { font-size:clamp(1.45rem,5.4vw,2.2rem); letter-spacing:-.04em; margin:.5rem 0 .4rem; }
+p { color:#bebed0; line-height:1.45; font-size:.95rem; margin:.3rem 0 1.1rem; }
+.panel { background:#1b1d2b; border:1px solid #34344b; border-radius:20px; overflow:hidden; }
+model-viewer { display:block; width:100%; height:clamp(315px,58vw,510px); background:radial-gradient(circle at 50% 35%, #313049 0%, #1e1e32 57%, #151827 100%); --progress-bar-color:#ff65a8; }
+model-viewer:focus-visible { outline:3px solid #ff76b9; outline-offset:-3px; }
+#launch-ar { background:#ff76b9; color:#240f1f; border-color:#ff76b9; font-weight:800; }
+.ar-feedback { margin:10px 2px; padding:12px 14px; border-radius:12px; background:#30283e; color:#f9deee; font-size:.88rem; }
+.ar-feedback[hidden] { display:none; }
+button:focus-visible,a:focus-visible { outline:3px solid #ffe1f1; outline-offset:3px; }
+.loader { position:absolute; left:18px; bottom:23px; font-size:.85rem; color:#ebe6ff; background:#171527bf; padding:7px 10px; border-radius:12px; }
+.chooser { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:15px 0; }
+.chooser button { padding:12px 8px; border:1px solid #484357; background:#252638; color:#ebebf7; border-radius:13px; font-weight:650; font-size:clamp(.76rem,2.6vw,.92rem); cursor:pointer; min-height:53px; }
+.chooser button[aria-pressed="true"] { border-color:#ff77bd; background:#3b243b; color:#ffbfdc; }
+.description { margin:14px 2px 9px; color:#fff; font-weight:700; font-size:1rem; }
+.tools { display:flex; gap:10px; flex-wrap:wrap; margin:12px 0 2px; }
+.tools button,.tools a { min-height:44px; padding:11px 15px; border-radius:12px; border:1px solid #47475e; background:#222435; color:#efedfa; font-size:.91rem; text-decoration:none; cursor:pointer; }
+.tools button:active,.chooser button:active { transform:translateY(1px); }
+.note { margin-top:17px; color:#aaabc0; font-size:.84rem; }
+.note strong { color:#efeaff; }
+.small { color:#aaaabe; font-size:.82rem; }
+@media(prefers-reduced-motion:reduce) { * {scroll-behavior:auto!important;} }
+.part-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 24px}.part-tabs a{flex:1;min-width:140px;padding:12px 14px;border-radius:12px;border:1px solid #484357;background:#222435;color:#efedfa;text-decoration:none;font-size:.9rem;font-weight:650}.part-tabs a[aria-current="page"]{background:#3b243b;border-color:#ff77bd;color:#ffbfdc}.chooser button small{display:block;font:inherit;font-size:.76rem;font-weight:450;margin-top:4px;color:#bebed0}.tools a.primary{background:#ff76b9;color:#240f1f;border-color:#ff76b9;font-weight:800}.tools button:disabled{opacity:.5;cursor:wait}.tools [hidden]{display:none}.part-help{margin-top:24px}.chooser button:hover,.part-tabs a:hover{border-color:#ffbfdc}button,a{ -webkit-tap-highlight-color:transparent}@media(max-width:520px){.chooser{grid-template-columns:repeat(2,minmax(0,1fr))}.chooser button:last-child{grid-column:1/-1}.tools>*{flex:1;text-align:center}.page{padding-top:16px}}</style><script src="part-b.js" defer></script></head>
+<body><main class="page">
+<nav class="part-tabs" aria-label="Lab parts"><a href="index.html" >Part A · Original models</a><a href="part-b.html" aria-current="page">Part B · Lab exercises</a></nav>
+<div class="eyebrow">TEC611 · LAB 2 · PART B</div><h1>Explore your Part B models</h1><p>Choose an exercise, rotate and zoom its 3D model, or open <strong style="color:#ffe4f2">Camera AR</strong> to view it on a Hiro marker.</p>
+<nav class="chooser" aria-label="Choose a Part B exercise">
+<button type="button" data-exercise="b1" aria-pressed="true">B1 · Solar panel<small>Python in Blender</small></button>
+<button type="button" data-exercise="b2" aria-pressed="false">B2 · Heart sticker<small>2D image to 3D</small></button>
+<button type="button" data-exercise="b3" aria-pressed="false">B3 · Blender model<small>GLB in WebAR</small></button>
+<button type="button" data-exercise="b4" aria-pressed="false">B4 · Solar structure<small>Model built with HTML</small></button>
+<button type="button" data-exercise="b5" aria-pressed="false">B5 · Interactive solar<small>Size, rotation and movement</small></button>
+</nav>
+<section class="panel" aria-label="Interactive 3D model">
+<model-viewer id="viewer" alt="Solar panel exported from Blender" camera-controls touch-action="pan-y" auto-rotate rotation-per-second="12deg" auto-rotate-delay="500" shadow-intensity="1" shadow-softness="1" exposure="1" environment-image="neutral" loading="eager"><div slot="progress-bar" class="loader" id="loader" role="status">Loading 3D model…</div></model-viewer>
+</section>
+<h2 id="model-title" class="description" aria-live="polite">B1 · Blender solar panel</h2>
+<p id="model-description">Solar panel exported from the supplied Blender project, with its frame, cells and support legs.</p>
+<div class="tools">
+<a id="camera-ar-link" class="primary" href="marker-ar.html?model=solar">Camera AR ↗</a>
+<button type="button" id="rotate">Pause rotation</button><button type="button" id="reset">Reset camera</button>
+<a id="exercise-link" href="B1.html">Open B1 exercise ↗</a>
+<button type="button" id="retry" hidden>Retry model</button>
+</div>
+<p id="model-status" class="small" role="status" aria-live="polite">Loading the solar panel…</p>
+<p class="note"><strong>Camera AR:</strong> allow camera access, then show the <a href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" target="_blank" rel="noopener" style="color:#ffbfdc">Hiro marker</a> on paper or another screen. Camera AR requires HTTPS and WebGL; it does not require ARCore.</p>
+<p class="small part-help">B4 and B5 previews match the structures in their HTML exercises. B5’s Camera AR page includes size, rotation, tilt, movement and reset controls. Source examples: Siti Sara Rais’s Vibe Coder materials.</p>
+</main></body></html>

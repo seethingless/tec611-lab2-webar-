@@ -33,10 +33,12 @@ button:focus-visible,a:focus-visible { outline:3px solid #ffe1f1; outline-offset
 .note strong { color:#efeaff; }
 .small { color:#aaaabe; font-size:.82rem; }
 @media(prefers-reduced-motion:reduce) { * {scroll-behavior:auto!important;} }
+.part-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 24px}.part-tabs a{flex:1;min-width:140px;padding:12px 14px;border-radius:12px;border:1px solid #484357;background:#222435;color:#efedfa;text-decoration:none;font-size:.9rem;font-weight:650}.part-tabs a[aria-current="page"]{background:#3b243b;border-color:#ff77bd;color:#ffbfdc}.chooser button small{display:block;font:inherit;font-size:.76rem;font-weight:450;margin-top:4px;color:#bebed0}.tools a.primary{background:#ff76b9;color:#240f1f;border-color:#ff76b9;font-weight:800}.tools button:disabled{opacity:.5;cursor:wait}.tools [hidden]{display:none}.part-help{margin-top:24px}.chooser button:hover,.part-tabs a:hover{border-color:#ffbfdc}button,a{ -webkit-tap-highlight-color:transparent}@media(max-width:520px){.chooser{grid-template-columns:repeat(2,minmax(0,1fr))}.chooser button:last-child{grid-column:1/-1}.tools>*{flex:1;text-align:center}.page{padding-top:16px}}
 </style>
 </head>
 <body>
 <main class="page">
+<nav class="part-tabs" aria-label="Lab parts"><a href="index.html" aria-current="page">Part A · Original models</a><a href="part-b.html" >Part B · Lab exercises</a></nav>
   <div class="eyebrow">TEC611 · LAB 2 · WEBAR</div>
   <h1>Explore your 3D models</h1>
   <p>Rotate the model with your finger, pinch to zoom, or use <strong style="color:#ffe4f2">View in AR</strong> on a supported phone.</p>
@@ -62,7 +64,7 @@ button:focus-visible,a:focus-visible { outline:3px solid #ffe1f1; outline-offset
   <p id="ar-feedback" class="ar-feedback" role="status" aria-live="polite" hidden></p>
   <p class="note"><strong>Supported iPhone:</strong> View in AR uses Quick Look (markerless). <strong>Android without ARCore:</strong> use Camera AR (Hiro marker) for browser-based camera AR. Show the <a href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" target="_blank" rel="noopener" style="color:#ffbfdc">Hiro marker</a> on another screen or paper. Camera and WebGL support are still required.</p>
   <p class="small">Models: Cone Head Cyclops · Armrest chair · Bookshelf. Drag to orbit; pinch to zoom.</p>
-<section aria-labelledby="lab-exercises" class="lab-exercises"><h2 id="lab-exercises">Lab exercises · A2–B5</h2><p>Explore the supplied Vibe Coder examples and Blender models.</p><nav class="tools" aria-label="Lab exercises"><a href="A2.html">A2 · Rotating red box</a>
+<section aria-labelledby="lab-exercises" class="lab-exercises"><h2 id="lab-exercises">Lab exercises · A2–B5</h2><p><a href="part-b.html" style="color:#ffbfdc">Open the Part B model gallery ↗</a></p><p>Explore the supplied Vibe Coder examples and Blender models.</p><nav class="tools" aria-label="Lab exercises"><a href="A2.html">A2 · Rotating red box</a>
 <a href="B1.html">B1 · Blender solar panel</a>
 <a href="B2.html">B2 · Heart sticker</a>
 <a href="B3.html">B3 · Blender GLB model</a>
