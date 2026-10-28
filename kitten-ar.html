@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#151b1d"><title>Kitten Marker · House AR</title>
+<style>*{box-sizing:border-box}body{margin:0;overflow:hidden;font-family:system-ui,sans-serif;background:#151b1d;color:white}a-scene{position:fixed!important;inset:0;width:100%!important;height:100%!important}.panel{position:fixed;z-index:10;left:12px;right:12px;background:#152023e8;border:1px solid #ffffff40;border-radius:14px;padding:12px 16px}.top{top:max(12px,env(safe-area-inset-top))}.bottom{bottom:max(12px,env(safe-area-inset-bottom))}h1{font-size:1rem;margin:0 0 6px}p{margin:6px 0;font-size:.87rem;line-height:1.4}nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}a,button{color:white;background:#304349;border:1px solid #789096;border-radius:8px;font:inherit;font-size:.85rem;padding:10px;text-decoration:none;min-height:42px;cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid #e2ffb0}#detail{color:#c3d2d7;font-size:.77rem}</style>
+<script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+<script src="https://raw.githack.com/AR-js-org/AR.js/3.4.8/aframe/build/aframe-ar.js"></script>
+<script>
+AFRAME.registerComponent('fit-house',{
+  init(){
+    this.el.addEventListener('model-loaded',()=>{
+      const T=AFRAME.THREE,mesh=this.el.getObject3D('mesh');
+      const bounds=new T.Box3().setFromObject(mesh),size=bounds.getSize(new T.Vector3()),center=bounds.getCenter(new T.Vector3());
+      if(bounds.isEmpty()||![size.x,size.y,size.z].every(Number.isFinite)){window.houseState('error');return;}
+      const scale=.9/Math.max(size.x,size.z,size.y,.001);
+      this.el.object3D.scale.setScalar(scale);
+      this.el.object3D.position.set(-center.x*scale,.012-bounds.min.y*scale,-center.z*scale);
+      window.houseState('ready');
+    });
+    this.el.addEventListener('model-error',()=>window.houseState('error'));
+  }
+});
+</script></head><body>
+<header class="panel top"><h1>Kitten marker · Your 3D house</h1><p>Point your camera at the <strong>bordered kitten marker</strong> on another screen or paper. Keep the whole black square visible.</p><nav><a href="kitten-marker.html" target="_blank" rel="noopener">Show kitten marker</a><button id="rotate" type="button">Rotate house</button><a href="lab3.html">Back to Lab 3</a></nav></header>
+<footer class="panel bottom" role="status" aria-live="polite"><p id="status">Starting camera… Allow camera access when asked.</p><p id="detail">Marker: waiting · House: loading</p></footer>
+<a-scene embedded vr-mode-ui="enabled:false" loading-screen="enabled:false" renderer="antialias:true; colorManagement:true" arjs="sourceType:webcam; debugUIEnabled:false; trackingMethod:best; patternRatio:0.5;">
+<a-marker id="kitten" type="pattern" url="kitten.patt" size="1" emitevents="true" smooth="true" smooth-count="5" smooth-tolerance="0.01" smooth-threshold="2">
+<a-entity id="turn"><a-entity id="house" gltf-model="reference-house.glb" fit-house></a-entity></a-entity>
+</a-marker><a-entity light="type:ambient; intensity:1.4"></a-entity><a-entity light="type:directional; intensity:1.2" position="-1 3 2"></a-entity><a-entity camera></a-entity></a-scene>
+<script>
+(()=>{
+ const state={found:false,model:'loading',cameraError:''},status=document.getElementById('status'),detail=document.getElementById('detail');
+ function refresh(){
+  detail.textContent='Marker: '+(state.found?'FOUND':'waiting')+' · House: '+state.model;
+  status.textContent=state.cameraError||(state.model==='error'?'The house could not load. Check your connection and reload.':state.found?(state.model==='ready'?'Kitten found! The house is above the marker.':'Kitten found. Loading the house…'):'Point at the bordered kitten marker. Keep its entire black border in view.');
+ }
+ window.houseState=value=>{state.model=value;refresh();};
+ const marker=document.getElementById('kitten');
+ marker.addEventListener('markerFound',()=>{state.found=true;refresh();});
+ marker.addEventListener('markerLost',()=>{state.found=false;refresh();});
+ window.addEventListener('camera-error',()=>{state.cameraError='Camera unavailable. Allow camera access and open this link in Chrome or Safari.';refresh();});
+ document.getElementById('rotate').addEventListener('click',()=>{const o=document.getElementById('turn').object3D;o.rotation.y+=Math.PI/2;});
+ if(!window.isSecureContext){state.cameraError='Open this page over HTTPS so the camera can start.';refresh();}
+})();
+</script></body></html>
