@@ -82,7 +82,8 @@
   <p class="sub">Works on many phones without ARCore. Allow camera access, then point at a Hiro marker on <strong>another screen or paper</strong>.</p>
   <div class="controls">
     <select id="choice" aria-label="Choose 3D model">
-      <option value="cyclops">👁️ Cyclops</option>
+      <option value="tinyhouse">Lab 3 · Edited tiny house</option>
+      <option value="cyclops" selected>👁️ Cyclops</option>
       <option value="chair">🪑 Chair</option>
       <option value="bookshelf">📚 Bookshelf</option>
       <option value="solar">B1 · Solar panel</option>
@@ -120,7 +121,7 @@
   const diagnostics = document.getElementById('diagnostics');
   const testCube = document.getElementById('test-cube');
   const testToggle = document.getElementById('test-cube-toggle');
-  const paths = {cyclops:'models/cyclops.glb', chair:'models/chair.glb', bookshelf:'models/bookshelf.glb', solar:'lab-b1.glb', heart:'lab-b2.glb', 'lab-model':'lab-b3.glb'};
+  const paths = {tinyhouse:'tinyhouse.glb', cyclops:'models/cyclops.glb', chair:'models/chair.glb', bookshelf:'models/bookshelf.glb', solar:'lab-b1.glb', heart:'lab-b2.glb', 'lab-model':'lab-b3.glb'};
   const allowed = new Set(Object.keys(paths));
   const requested = new URLSearchParams(location.search).get('model');
   const state = {tracking:false, model:'loading', detail:''};
