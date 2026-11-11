@@ -1,0 +1,117 @@
+/* Monochrome glass theme for the viewer and camera pages, matching index.html (assets/site.css).
+   Loaded after each page's own <style>; rules start with :root so they win over the page's
+   older pink theme without !important. Models keep their real colours on these pages. */
+@font-face {
+  font-family: "Archivo";
+  src: url("fonts/archivo-variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Michroma";
+  src: url("fonts/michroma.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+  --mono-void: #060606;
+  --mono-ink: #f3f3f3;
+  --mono-ink-2: rgba(243, 243, 243, 0.72);
+  --mono-edge: rgba(255, 255, 255, 0.16);
+  --mono-glass: rgba(255, 255, 255, 0.06);
+  --mono-glass-hi: rgba(255, 255, 255, 0.15);
+  --mono-panel: rgba(8, 8, 8, 0.74);
+  font-family: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--mono-void);
+  color: var(--mono-ink);
+}
+:root body {
+  font-family: inherit;
+  background: radial-gradient(70% 50% at 70% 0%, rgba(255, 255, 255, 0.07), transparent 70%), var(--mono-void);
+  color: var(--mono-ink);
+}
+:root h1 { font-family: "Michroma", "Archivo", sans-serif; font-weight: 400; letter-spacing: 0.01em; }
+:root h2 { font-family: "Archivo", sans-serif; }
+:root p, :root ol, :root li { color: var(--mono-ink-2); }
+:root strong { color: var(--mono-ink); }
+:root a { color: var(--mono-ink); }
+:root :focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+:root .eyebrow, :root .label, :root .small, :root .note { color: rgba(243, 243, 243, 0.62); }
+:root .note strong, :root .description { color: var(--mono-ink); }
+
+/* Galleries and single-model viewers */
+:root .panel { background: var(--mono-glass); border-color: var(--mono-edge); border-radius: 0; }
+:root model-viewer {
+  background: radial-gradient(circle at 50% 38%, #2b2b2b 0%, #161616 58%, #0b0b0b 100%);
+  border-color: var(--mono-edge);
+  border-radius: 0;
+  --progress-bar-color: #ffffff;
+}
+:root .loader { background: rgba(8, 8, 8, 0.72); color: var(--mono-ink); border-radius: 0; }
+:root .chooser button,
+:root .part-tabs a,
+:root .tools button,
+:root .tools a {
+  background: var(--mono-glass);
+  border: 1px solid var(--mono-edge);
+  color: var(--mono-ink);
+  border-radius: 0;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+:root .chooser button small { color: rgba(243, 243, 243, 0.62); }
+:root .chooser button:hover, :root .part-tabs a:hover, :root .tools button:hover, :root .tools a:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+}
+:root .chooser button[aria-pressed="true"],
+:root .part-tabs a[aria-current="page"] {
+  background: var(--mono-glass-hi);
+  border-color: rgba(255, 255, 255, 0.75);
+  color: #fff;
+}
+:root .part-tabs a.home { flex: 0 1 auto; }
+/* Primary actions: solid white */
+:root #launch-ar,
+:root .tools a.primary,
+:root #place {
+  background: var(--mono-ink);
+  border-color: var(--mono-ink);
+  color: #0a0a0a;
+}
+:root #launch-ar:hover, :root .tools a.primary:hover, :root #place:hover { background: #fff; }
+:root .tools a.secondary { background: var(--mono-glass-hi); border-color: rgba(255, 255, 255, 0.45); font-weight: 650; }
+:root .ar-feedback { background: var(--mono-glass); border: 1px solid var(--mono-edge); border-radius: 0; color: var(--mono-ink); }
+:root summary { color: var(--mono-ink); }
+
+/* Camera AR overlays (marker-ar, cone-ar, kitten-ar) */
+:root .top, :root .bottom, :root #ar-controls, :root #ar-status-panel {
+  background: var(--mono-panel);
+  border-color: var(--mono-edge);
+  border-radius: 0;
+}
+:root .top h1, :root #ar-controls h1 { font-size: 0.95rem; line-height: 1.4; }
+:root .controls a, :root .controls select, :root .controls button,
+:root #ar-controls a, :root #ar-controls button {
+  background: var(--mono-glass);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: var(--mono-ink);
+  border-radius: 0;
+}
+:root #status { color: var(--mono-ink); }
+:root .tiny, :root .sub, :root #detail { color: rgba(243, 243, 243, 0.7); }
+
+/* Phones: two buttons per row instead of four squeezed ones. */
+@media (max-width: 520px) {
+  :root .tools > * { flex: 1 1 calc(50% - 5px); }
+}
+
+/* 44px touch targets (WCAG 2.5.5) */
+:root .part-tabs a, :root .controls a, :root .controls select, :root .controls button,
+:root #ar-controls a, :root #ar-controls button { min-height: 44px; }
+@media (pointer: coarse) {
+  :root main > a[href^="index.html"]:first-child { display: inline-block; padding-block: 12px; }
+  :root .lab-exercises p > a { display: inline-block; padding-block: 12px; }
+}

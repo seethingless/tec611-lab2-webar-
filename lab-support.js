@@ -27,10 +27,10 @@
     const isPartB = /^B[1-5]\.html$/i.test(page);
     const nav = document.createElement('nav');
     nav.setAttribute('aria-label','Lab navigation');
-    nav.style.cssText='position:fixed;left:10px;right:10px;top:10px;z-index:10000;display:flex;flex-wrap:wrap;gap:12px;padding:10px;background:#171827ed;color:white;border-radius:10px;font:14px system-ui';
-    for (const [label,href] of [[isPartB?'← Part B':'← Gallery',isPartB?'part-b.html':'index.html'],['A2','A2.html'],['B1','B1.html'],['B2','B2.html'],['B3','B3.html'],['B4','B4.html'],['B5','B5.html'],['Hiro marker','https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png']]) {
+    nav.style.cssText='position:fixed;left:10px;right:10px;top:10px;z-index:10000;display:flex;flex-wrap:wrap;gap:12px;padding:10px;background:rgba(8,8,8,.78);color:#f3f3f3;border:1px solid rgba(255,255,255,.16);font:14px system-ui;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)';
+    for (const [label,href] of [[isPartB?'← Part B':'← All projects',isPartB?'part-b.html':'index.html'],['A2','A2.html'],['B1','B1.html'],['B2','B2.html'],['B3','B3.html'],['B4','B4.html'],['B5','B5.html'],['Hiro marker','https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png']]) {
       const a = document.createElement('a');
-      a.textContent=label; a.href=href; a.style.color='#ffbfdc';
+      a.textContent=label; a.href=href; a.style.color='#f3f3f3';
       if (label==='Hiro marker') {a.target='_blank';a.rel='noopener';}
       nav.appendChild(a);
     }
@@ -40,7 +40,7 @@
     placeInstructions(); window.addEventListener('resize',placeInstructions);
     const status=document.createElement('p');
     status.setAttribute('role','status'); status.id='lab-status';
-    status.style.cssText='position:fixed;z-index:10000;bottom:8px;left:10px;right:10px;margin:0;padding:8px 12px;border-radius:8px;background:#171827e8;color:#fff;font:13px system-ui;pointer-events:none';
+    status.style.cssText='position:fixed;z-index:10000;bottom:8px;left:10px;right:10px;margin:0;padding:8px 12px;background:rgba(8,8,8,.78);border:1px solid rgba(255,255,255,.16);color:#f3f3f3;font:13px system-ui;pointer-events:none';
     document.body.appendChild(status);
     const controls=document.getElementById('controlPanel');
     if(controls) {controls.style.bottom='62px';controls.style.maxHeight='45vh';controls.style.overflowY='auto';}

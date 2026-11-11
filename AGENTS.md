@@ -6,14 +6,25 @@ Notes for anyone (human or AI agent) changing this site. It is a static GitHub P
 
 | Page | What it is | Library |
 | --- | --- | --- |
-| `index.html` | Part A gallery: Cyclops, chair, bookshelf. `?model=chair` selects a model. | model-viewer |
+| `index.html` | Projects hub: every lab, newest first, plus AR tools and markers. Old `index.html?model=x` links forward to `part-a.html?model=x`. | model-viewer (hero cone) |
+| `part-a.html` | Part A gallery: Cyclops, chair, bookshelf. `?model=chair` selects a model. Chair and bookshelf GLBs are Z-up, so the gallery sets `orientation="0deg -90deg 0deg"` for them. | model-viewer |
 | `part-b.html` + `part-b.js` | Part B gallery: B1 to B5. `?exercise=b3` selects an exercise. | model-viewer |
 | `lab3.html`, `sofa.html` | Single-model viewers with "Place in my room". `lab3.html` is the Lab 3 QR target, so keep its URL. | model-viewer |
 | `B1.html`, `B2.html` | Single-model previews. | model-viewer |
 | `marker-ar.html` | Hiro marker camera AR for every model. `?model=<key>` selects one. | A-Frame + AR.js |
 | `A2.html`, `B3.html`, `B4.html`, `B5.html` | Lecturer's lab examples (Siti Sara Rais). `lab-support.js` adds the nav bar and status bar. Keep their scenes as supplied. | A-Frame + AR.js |
 | `cone-ar.html`, `kitten-ar.html` | Kitten pattern-marker AR (`kitten.patt`). | A-Frame + AR.js |
-| `*-marker.html`, `cone-lab.html`, `lab3-qr.html`, `lecturer-marker.html` | Static marker and link sheets. No script. | none |
+| `cone-lab.html` | Landing page for the VLC cone project, in the hub theme. | none |
+| `*-marker.html`, `lab3-qr.html`, `lecturer-marker.html` | Printable marker and QR sheets. Keep them on a white background so they print and track well. | none |
+
+**Adding a new lab:** add a `<li class="project">` at the top of the timeline in `index.html` (newest first), with a transparent WebP thumbnail in `assets/thumbs/`. Move the `Latest` tag to it.
+
+## Look and feel
+
+- `assets/site.css` is the monochrome glass theme for the hub and `cone-lab.html`: near-black background, translucent `.glass` panels, thin white edges, square corners. Michroma for display type, Archivo for text, both self-hosted in `assets/fonts/` (SIL OFL).
+- `assets/viewer.css` brings the same theme to the viewer and camera pages. It loads after each page's own `<style>` and prefixes rules with `:root`, so it wins without `!important`.
+- The hub shows models in greyscale and reveals colour on hover, keyboard focus, drag, or (on phones) when a project is in the middle of the screen. Viewer pages always show true colour.
+- Keep touch targets at least 44px tall and keep the white focus outline.
 
 ## State machines
 
@@ -29,8 +40,8 @@ SiteState.debug = true             // log every transition in the console
 | `model` | `loading`, `ready`, `error`, `unavailable` (final) | `LOAD`, `LOADED`, `FAILED`, `LIBRARY_FAILED` | every page with a 3D model |
 | `camera` | `starting`, `running`, `blocked`, `insecure`, `unsupported` (last three final) | `STARTED`, `BLOCKED`, `INSECURE`, `UNSUPPORTED` | AR.js pages |
 | `tracking` | `searching`, `found` | `FOUND`, `LOST` | AR.js pages |
-| `ar` (`arLaunch`) | `idle`, `unavailable`, `failed` | `REQUEST`, `UNAVAILABLE`, `FAILED`, `RESET` | `index.html`, `lab3.html`, `sofa.html` |
-| `rotation` | `spinning`, `paused` | `TOGGLE`, `SPIN` | `index.html`, `part-b.html` |
+| `ar` (`arLaunch`) | `idle`, `unavailable`, `failed` | `REQUEST`, `UNAVAILABLE`, `FAILED`, `RESET` | `part-a.html`, `lab3.html`, `sofa.html` |
+| `rotation` | `spinning`, `paused` | `TOGGLE`, `SPIN` | `part-a.html`, `part-b.html` |
 | `test-cube` | `hidden`, `shown` | `TOGGLE` | `marker-ar.html` (defined inline) |
 
 Selections are data, not machine states: `data-selected-model` (gallery and camera AR) and `data-selected-exercise` (Part B). B5's sliders and buttons use a reducer instead (`update(state, action)` then `render()`), and expose `data-scale`, `data-rotate`, `data-tilt` and `data-position` on `#controlPanel`.

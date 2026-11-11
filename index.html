@@ -3,178 +3,222 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#151623">
-<title>TEC611 Lab 2 | WebAR 3D Gallery</title>
+<meta name="theme-color" content="#060606">
+<meta name="description" content="All TEC611 WebAR lab projects in one place: 3D models you can spin, place in your room, or track on a printed marker.">
+<title>TEC611 WebAR labs</title>
+<script>
+  // The Part A gallery used to live here. Keep old links such as index.html?model=chair working.
+  if (/[?&]model=/.test(location.search)) location.replace('part-a.html' + location.search + location.hash);
+</script>
+<link rel="preload" href="assets/fonts/michroma.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/archivo-variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/site.css">
 <script src="site-state.js"></script>
 <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js" onerror="SiteState.viewerLibraryFailed()"></script>
-<style>
-:root { color-scheme: dark; font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:#10121d; color:#f7f5ff; }
-* { box-sizing:border-box; }
-body { margin:0; min-height:100%; }
-.page { width:min(100%,820px); margin:auto; padding:22px clamp(16px,4vw,32px) 42px; }
-.eyebrow { color:#b8b5d1; font-size:.78rem; font-weight:750; letter-spacing:.12em; }
-h1 { font-size:clamp(1.45rem,5.4vw,2.2rem); letter-spacing:-.04em; margin:.5rem 0 .4rem; }
-p { color:#bebed0; line-height:1.45; font-size:.95rem; margin:.3rem 0 1.1rem; }
-.panel { background:#1b1d2b; border:1px solid #34344b; border-radius:20px; overflow:hidden; }
-model-viewer { display:block; width:100%; height:clamp(315px,58vw,510px); background:radial-gradient(circle at 50% 35%, #313049 0%, #1e1e32 57%, #151827 100%); --progress-bar-color:#ff65a8; }
-model-viewer:focus-visible { outline:3px solid #ff76b9; outline-offset:-3px; }
-#launch-ar { background:#ff76b9; color:#240f1f; border-color:#ff76b9; font-weight:800; }
-.ar-feedback { margin:10px 2px; padding:12px 14px; border-radius:12px; background:#30283e; color:#f9deee; font-size:.88rem; }
-.ar-feedback[hidden] { display:none; }
-button:focus-visible,a:focus-visible { outline:3px solid #ffe1f1; outline-offset:3px; }
-.loader { position:absolute; left:18px; bottom:23px; font-size:.85rem; color:#ebe6ff; background:#171527bf; padding:7px 10px; border-radius:12px; }
-.chooser { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:15px 0; }
-.chooser button { padding:12px 8px; border:1px solid #484357; background:#252638; color:#ebebf7; border-radius:13px; font-weight:650; font-size:clamp(.76rem,2.6vw,.92rem); cursor:pointer; min-height:53px; }
-.chooser button[aria-pressed="true"] { border-color:#ff77bd; background:#3b243b; color:#ffbfdc; }
-.description { margin:14px 2px 9px; color:#fff; font-weight:700; font-size:1rem; }
-.tools { display:flex; gap:10px; flex-wrap:wrap; margin:12px 0 2px; }
-.tools button,.tools a { min-height:44px; padding:11px 15px; border-radius:12px; border:1px solid #47475e; background:#222435; color:#efedfa; font-size:.91rem; text-decoration:none; cursor:pointer; }
-.tools button:active,.chooser button:active { transform:translateY(1px); }
-.note { margin-top:17px; color:#aaabc0; font-size:.84rem; }
-.note strong { color:#efeaff; }
-.small { color:#aaaabe; font-size:.82rem; }
-@media(prefers-reduced-motion:reduce) { * {scroll-behavior:auto!important;} }
-.part-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 24px}.part-tabs a{flex:1;min-width:140px;padding:12px 14px;border-radius:12px;border:1px solid #484357;background:#222435;color:#efedfa;text-decoration:none;font-size:.9rem;font-weight:650}.part-tabs a[aria-current="page"]{background:#3b243b;border-color:#ff77bd;color:#ffbfdc}.chooser button small{display:block;font:inherit;font-size:.76rem;font-weight:450;margin-top:4px;color:#bebed0}.tools a.primary{background:#ff76b9;color:#240f1f;border-color:#ff76b9;font-weight:800}.tools button:disabled{opacity:.5;cursor:wait}.tools [hidden]{display:none}.part-help{margin-top:24px}.chooser button:hover,.part-tabs a:hover{border-color:#ffbfdc}button,a{ -webkit-tap-highlight-color:transparent}@media(max-width:520px){.chooser{grid-template-columns:repeat(2,minmax(0,1fr))}.chooser button:last-child{grid-column:1/-1}.tools>*{flex:1;text-align:center}.page{padding-top:16px}}
-</style>
 </head>
 <body>
-<main class="page">
-<nav class="part-tabs" aria-label="Lab parts"><a href="index.html" aria-current="page">Part A · Original models</a><a href="part-b.html" >Part B · Lab exercises</a></nav>
-  <p><a href="lab3.html" style="color:#ffbfdc">Lab 3 · Tiny house and QR ↗</a></p>
-  <div class="eyebrow">TEC611 · LAB 2 · WEBAR</div>
-  <h1>Explore your 3D models</h1>
-  <p>Rotate the model with your finger, pinch to zoom, or use <strong style="color:#ffe4f2">View in AR</strong> on a supported phone.</p>
-  <nav class="chooser" aria-label="Choose a 3D model">
-    <button type="button" data-model="cyclops" aria-pressed="true">👁️ Cyclops</button>
-    <button type="button" data-model="chair" aria-pressed="false">🪑 Chair</button>
-    <button type="button" data-model="bookshelf" aria-pressed="false">📚 Bookshelf</button>
+<div class="guides" aria-hidden="true"></div>
+
+<header class="site-nav wrap">
+  <a class="brand" href="index.html">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" fill="none" stroke="currentColor" stroke-width="4"/><rect x="11" y="9" width="5" height="5" fill="currentColor"/><rect x="16" y="14" width="5" height="9" fill="currentColor"/><rect x="10" y="18" width="4" height="5" fill="currentColor"/></svg>
+    <span>TEC611</span>
+  </a>
+  <nav aria-label="Sections">
+    <a href="#projects">Projects</a>
+    <a href="#tools">AR tools</a>
   </nav>
-  <section class="panel" aria-label="Interactive 3D model">
-    <model-viewer id="viewer" src="models/cyclops.glb" ios-src="models/cyclops.usdz" alt="Cone Head Cyclops, a blue one-eyed 3D character with a red party hat" ar ar-modes="quick-look scene-viewer webxr" camera-controls touch-action="pan-y" auto-rotate rotation-per-second="12deg" auto-rotate-delay="500" shadow-intensity="1" shadow-softness="1" exposure="1" environment-image="neutral" interaction-prompt="auto" loading="eager">
-      <div slot="progress-bar" class="loader" id="loader" role="status">Loading 3D model…</div>
-    </model-viewer>
+  <a class="btn" href="marker-ar.html">Open camera AR</a>
+</header>
+
+<main>
+  <section class="hero wrap" aria-labelledby="page-title">
+    <div class="hero-copy">
+      <div class="title-block">
+        <span class="title-bar" aria-hidden="true"></span>
+        <p class="kicker">TEC611 coursework</p>
+        <h1 id="page-title">WebAR<br>Labs</h1>
+        <p class="tagline">Five projects, from a cyclops in a party hat to a cone on a cat marker</p>
+      </div>
+      <p class="lede">Every model here works three ways. Spin it in 3D, place it in your room on a supported phone, or point your camera at a printed marker and watch it appear.</p>
+      <a class="btn btn-lg" href="#projects">See all projects</a>
+    </div>
+
+    <figure class="hero-stage" id="hero-stage">
+      <model-viewer id="hero-model" src="VLC_Cone.glb" alt="VLC-style traffic cone, the latest lab model" camera-controls disable-zoom auto-rotate rotation-per-second="18deg" auto-rotate-delay="0" interaction-prompt="none" camera-orbit="30deg 72deg 88%" min-camera-orbit="auto auto 60%" field-of-view="30deg" environment-image="neutral" shadow-intensity="0.9" shadow-softness="1" exposure="1.05" loading="eager">
+        <img slot="poster" src="assets/thumbs/cone.webp" alt="">
+      </model-viewer>
+      <figcaption>The latest lab. Drag to turn it.</figcaption>
+    </figure>
+
+    <ul class="modes glass" aria-label="Ways to view a model">
+      <li>
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9L12 3Z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/></svg>Spin in 3D</h2>
+        <p>Drag to turn, pinch to zoom. Works on any phone or laptop.</p>
+      </li>
+      <li>
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 17 12 21l9-4-9-4-9 4Z"/><path d="M12 13V4m0 0-3 3m3-3 3 3"/></svg>In your room</h2>
+        <p>Quick Look on iPhone, Scene Viewer on Android with ARCore.</p>
+      </li>
+      <li>
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17"/><rect x="7.5" y="7.5" width="9" height="9"/><path d="M10 10h2v2h-2zM12 12h2v2h-2z" fill="currentColor" stroke="none"/></svg>Track a marker</h2>
+        <p>Point the camera at a printed marker. No ARCore needed.</p>
+      </li>
+    </ul>
   </section>
-  <div id="model-title" class="description" aria-live="polite">Cone Head Cyclops</div>
-  <p id="model-description">Original hand-painted 3D character with stickers and a striped party hat.</p>
-  <div class="tools">
-    <button type="button" id="launch-ar" aria-label="View selected model in augmented reality">View in AR ↗</button>
-    <a id="camera-ar-link" href="marker-ar.html?model=cyclops" style="background:#3b243b;border-color:#ff77bd;color:#ffbfdc;font-weight:750;">Camera AR (no ARCore) ↗</a>
-    <button type="button" id="rotate">Pause rotation</button>
-    <button type="button" id="reset">Reset camera</button>
-    <a id="usdz-link" href="models/cyclops.usdz">Open USDZ directly (iPhone)</a>
-  </div>
-  <p id="ar-feedback" class="ar-feedback" role="status" aria-live="polite" hidden></p>
-  <p class="note"><strong>Supported iPhone:</strong> View in AR uses Quick Look (markerless). <strong>Android without ARCore:</strong> use Camera AR (Hiro marker) for browser-based camera AR. Show the <a href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" target="_blank" rel="noopener" style="color:#ffbfdc">Hiro marker</a> on another screen or paper. Camera and WebGL support are still required.</p>
-  <p class="small">Models: Cone Head Cyclops · Armrest chair · Bookshelf. Drag to orbit; pinch to zoom.</p>
-<section aria-labelledby="lab-exercises" class="lab-exercises"><h2 id="lab-exercises">Lab exercises · A2–B5</h2><p><a href="part-b.html" style="color:#ffbfdc">Open the Part B model gallery ↗</a></p><p>Explore the supplied Vibe Coder examples and Blender models.</p><nav class="tools" aria-label="Lab exercises"><a href="A2.html">A2 · Rotating red box</a>
-<a href="B1.html">B1 · Blender solar panel</a>
-<a href="B2.html">B2 · Heart sticker</a>
-<a href="B3.html">B3 · Blender GLB model</a>
-<a href="B4.html">B4 · Solar panel structure</a>
-<a href="B5.html">B5 · Interactive solar panel</a></nav></section>
+
+  <section class="projects wrap" id="projects" aria-labelledby="projects-title">
+    <h2 class="section-title" id="projects-title">Projects</h2>
+    <p class="section-intro">Newest first. Each model shows its true colours when you point at it.</p>
+    <ol class="timeline">
+      <li class="project">
+        <div class="when"><time datetime="2026-11-11">11 Nov</time><span class="tag">Latest</span></div>
+        <article class="project-card glass" aria-labelledby="p-cone">
+          <a class="thumb" href="cone-lab.html" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/cone.webp" alt="" width="593" height="640" loading="lazy"></a>
+          <div class="project-body">
+            <p class="lab">Marker AR</p>
+            <h3 id="p-cone">VLC cone on a cat marker</h3>
+            <p>A VLC-style traffic cone that stands on a bordered cat meme marker, with the lecturer's original tinyhouse marker alongside it.</p>
+            <a class="btn" href="cone-lab.html">Open the cone lab</a>
+            <ul class="links" aria-label="More for the VLC cone">
+              <li><a href="cone-ar.html">Camera AR</a></li>
+              <li><a href="cone-marker.html">Cat marker</a></li>
+              <li><a href="lecturer-marker.html">Lecturer marker</a></li>
+              <li><a href="VLC_Cone.usdz" rel="ar">iPhone USDZ</a></li>
+            </ul>
+          </div>
+        </article>
+      </li>
+
+      <li class="project">
+        <div class="when"><time datetime="2026-11-04">4 Nov</time></div>
+        <article class="project-card glass" aria-labelledby="p-sofa">
+          <a class="thumb" href="sofa.html" tabindex="-1" aria-hidden="true"><img class="wide" src="assets/thumbs/sofa.webp" alt="" width="640" height="390" loading="lazy"></a>
+          <div class="project-body">
+            <p class="lab">Model optimisation</p>
+            <h3 id="p-sofa">Optimised sofa</h3>
+            <p>A corner sofa set with cushions, a blanket and coffee tables, ready to place in your room or on a marker.</p>
+            <a class="btn" href="sofa.html">Open the sofa</a>
+            <ul class="links" aria-label="More for the sofa">
+              <li><a href="marker-ar.html?model=sofa">Camera AR</a></li>
+            </ul>
+          </div>
+        </article>
+      </li>
+
+      <li class="project">
+        <div class="when"><time datetime="2026-10-28">28 Oct</time></div>
+        <article class="project-card glass" aria-labelledby="p-lab3">
+          <a class="thumb" href="lab3.html" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/tinyhouse.webp" alt="" width="528" height="640" loading="lazy"></a>
+          <div class="project-body">
+            <p class="lab">Lab 3</p>
+            <h3 id="p-lab3">Tiny house and QR</h3>
+            <p>The edited two-storey tiny house with its repaired roof, roof supports and entrance stairs. Scan the QR sheet to open it, then track the marker.</p>
+            <a class="btn" href="lab3.html">Open the tiny house</a>
+            <ul class="links" aria-label="More for Lab 3">
+              <li><a href="lab3-qr.html">QR and marker sheet</a></li>
+              <li><a href="marker-ar.html?model=tinyhouse">Camera AR</a></li>
+              <li><a href="kitten-ar.html">House on the kitten marker</a></li>
+              <li><a href="kitten-marker.html">Kitten marker</a></li>
+            </ul>
+          </div>
+        </article>
+      </li>
+
+      <li class="project">
+        <div class="when"><time datetime="2026-10-21">21 Oct</time></div>
+        <article class="project-card glass" aria-labelledby="p-partb">
+          <a class="thumb" href="part-b.html" tabindex="-1" aria-hidden="true"><img src="assets/thumbs/solar.webp" alt="" width="640" height="510" loading="lazy"><img class="small" src="assets/thumbs/heart.webp" alt="" width="640" height="201" loading="lazy"></a>
+          <div class="project-body">
+            <p class="lab">Lab 2, part B</p>
+            <h3 id="p-partb">Lab exercises</h3>
+            <p>Six exercises: a rotating marker box, a Blender solar panel, a heart sticker, a Blender GLB, an HTML solar structure and an interactive solar panel.</p>
+            <a class="btn" href="part-b.html">Open the Part B gallery</a>
+            <ul class="links" aria-label="Part B exercise pages">
+              <li><a href="A2.html">A2 box</a></li>
+              <li><a href="B1.html">B1 solar panel</a></li>
+              <li><a href="B2.html">B2 heart</a></li>
+              <li><a href="B3.html">B3 Blender GLB</a></li>
+              <li><a href="B4.html">B4 structure</a></li>
+              <li><a href="B5.html">B5 interactive</a></li>
+            </ul>
+          </div>
+        </article>
+      </li>
+
+      <li class="project">
+        <div class="when"><time datetime="2026-10-14">14 Oct</time></div>
+        <article class="project-card glass" aria-labelledby="p-parta">
+          <a class="thumb" href="part-a.html" tabindex="-1" aria-hidden="true"><img class="small" src="assets/thumbs/chair.webp" alt="" width="600" height="640" loading="lazy"><img src="assets/thumbs/cyclops.webp" alt="" width="382" height="640" loading="lazy"><img class="small" src="assets/thumbs/bookshelf.webp" alt="" width="466" height="640" loading="lazy"></a>
+          <div class="project-body">
+            <p class="lab">Lab 2, part A</p>
+            <h3 id="p-parta">Original models</h3>
+            <p>My own three models: Cone Head Cyclops in a striped party hat, an armrest chair and a bookshelf.</p>
+            <a class="btn" href="part-a.html">Open the Part A gallery</a>
+            <ul class="links" aria-label="More for Part A">
+              <li><a href="marker-ar.html?model=cyclops">Camera AR</a></li>
+              <li><a href="models/cyclops.usdz" rel="ar">Cyclops USDZ</a></li>
+            </ul>
+          </div>
+        </article>
+      </li>
+    </ol>
+  </section>
+
+  <section class="tools-section wrap" id="tools" aria-labelledby="tools-title">
+    <h2 class="section-title" id="tools-title">AR tools</h2>
+    <div class="tools glass">
+      <div class="tool">
+        <h3>Camera AR</h3>
+        <p>One page for every model. Choose a model, allow the camera, then point it at a Hiro marker. Works without ARCore.</p>
+        <a class="btn" href="marker-ar.html">Open camera AR</a>
+      </div>
+      <div class="tool">
+        <h3>Markers</h3>
+        <p>Show a marker on a second screen or print it. Keep the whole black border in view.</p>
+        <ul>
+          <li><a href="hiro.png" target="_blank" rel="noopener">Hiro marker <span>Camera AR, Lab 2 and 3</span></a></li>
+          <li><a href="cone-marker.html">Cat marker <span>VLC cone</span></a></li>
+          <li><a href="kitten-marker.html">Kitten marker <span>Reference house</span></a></li>
+          <li><a href="lecturer-marker.html">Lecturer marker <span>Tinyhouse pre-lab</span></a></li>
+        </ul>
+      </div>
+      <div class="tool">
+        <h3>Lab 3 QR sheet</h3>
+        <p>Scan the QR to open the tiny house on your phone, then point the camera at the Hiro marker on the same sheet.</p>
+        <a class="btn" href="lab3-qr.html">Open the QR sheet</a>
+      </div>
+    </div>
+  </section>
 </main>
+
+<footer class="site-footer wrap">
+  <p>Camera AR needs HTTPS, camera permission and WebGL. Use Safari on iPhone or Chrome on Android.</p>
+  <p>Lab 2 exercises adapted from Siti Sara Rais's Vibe Coder materials. Fonts: Michroma and Archivo (SIL OFL).</p>
+</footer>
+
 <script>
 /*
-  Gallery behaviour as explicit state machines (see site-state.js and AGENTS.md):
-  model    loading -> ready | error, or unavailable if the viewer library fails
-  rotation spinning <-> paused
-  ar       idle | unavailable | failed (the message under the AR button)
-  The selected model is data, mirrored as data-selected-model on <html> and ?model= in the URL.
+  Hero model state (see site-state.js and AGENTS.md): model loading -> ready | error | unavailable.
+  The poster image stays visible until the model loads, and is the fallback if it never does.
 */
 (() => {
-  const viewer = document.getElementById('viewer');
-  const models = {
-    cyclops: { title: 'Cone Head Cyclops', description: 'Original hand-painted 3D character with stickers and a striped party hat.', alt: 'Cone Head Cyclops, blue one-eyed sphere wearing a red and pink party hat' },
-    chair: { title: 'Modern armrest chair', description: 'A low-poly wooden chair with blue padded seat, backrest, and armrests.', alt: 'Modern brown wood armchair with blue padded upholstery' },
-    bookshelf: { title: 'Bookshelf', description: 'A low-poly wooden bookshelf with colorful books and a small plant.', alt: 'Three-dimensional bookshelf with books and plant' }
-  };
-  const buttons = [...document.querySelectorAll('[data-model]')];
-  const launchAR = document.getElementById('launch-ar');
-  const cameraARLink = document.getElementById('camera-ar-link');
-  const arFeedback = document.getElementById('ar-feedback');
-  const rotate = document.getElementById('rotate');
-  const reset = document.getElementById('reset');
-  const usdz = document.getElementById('usdz-link');
-  const loader = document.getElementById('loader');
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
+  const stage = document.getElementById('hero-stage');
+  const viewer = document.getElementById('hero-model');
   const model = SiteState.createMachine(SiteState.machines.model);
-  const rotation = SiteState.createMachine(SiteState.machines.rotation);
-  const ar = SiteState.createMachine(SiteState.machines.arLaunch);
-  let selected = null;
-
-  const loaderText = {
-    loading: 'Loading 3D model…',
-    ready: '3D ready · drag to rotate',
-    error: 'Model failed to load. Check HTTPS hosting.',
-    unavailable: '3D viewer could not load. Check your connection, then reload the page.'
-  };
-  model.subscribe(state => { loader.textContent = loaderText[state]; });
-  rotation.subscribe(state => {
-    viewer.autoRotate = state === 'spinning';
-    rotate.textContent = state === 'spinning' ? 'Pause rotation' : 'Resume rotation';
-  });
-  ar.subscribe((state, { detail }) => {
-    if (state === 'idle') { arFeedback.hidden = true; return; }
-    arFeedback.textContent = detail;
-    arFeedback.hidden = false;
-  });
   SiteState.bindModelViewer(viewer, model);
+  // Show the model in colour while someone is turning it.
+  viewer.addEventListener('pointerdown', () => stage.classList.add('is-dragging'));
+  window.addEventListener('pointerup', () => stage.classList.remove('is-dragging'));
+  window.addEventListener('pointercancel', () => stage.classList.remove('is-dragging'));
 
-  function select(key, updateURL) {
-    if (key === selected || !models[key]) return;
-    selected = key;
-    const info = models[key];
-    document.documentElement.dataset.selectedModel = key;
-    buttons.forEach(x => x.setAttribute('aria-pressed', String(x.dataset.model === key)));
-    viewer.setAttribute('src', `models/${key}.glb`);
-    viewer.setAttribute('ios-src', `models/${key}.usdz`);
-    viewer.setAttribute('alt', info.alt);
-    usdz.setAttribute('href', `models/${key}.usdz`);
-    cameraARLink.setAttribute('href', `marker-ar.html?model=${key}`);
-    document.getElementById('model-title').textContent = info.title;
-    document.getElementById('model-description').textContent = info.description;
-    model.send('LOAD', { key });
-    ar.send('RESET');
-    if (updateURL) {
-      const url = new URL(location.href);
-      url.searchParams.set('model', key);
-      history.replaceState(null, '', url);
-    }
+  // Phones have no hover, so a project shows its colours while it sits in the middle of the screen.
+  if (matchMedia('(hover: none)').matches && 'IntersectionObserver' in window) {
+    const watch = new IntersectionObserver(entries => {
+      entries.forEach(entry => entry.target.classList.toggle('in-focus', entry.isIntersecting));
+    }, { rootMargin: '-35% 0px -35% 0px' });
+    document.querySelectorAll('.project').forEach(project => watch.observe(project));
   }
-
-  launchAR.addEventListener('click', () => {
-    ar.send('REQUEST');
-    // The in-viewer AR slot disappears when <model-viewer> detects no AR support.
-    // This regular button remains visible and supplies an explanation instead.
-    if (viewer.canActivateAR && typeof viewer.activateAR === 'function') {
-      try {
-        Promise.resolve(viewer.activateAR()).catch(() => {
-          ar.send('FAILED', 'AR could not start. Try Safari on an AR-capable iPhone or Chrome on an ARCore-supported Android device.');
-        });
-      } catch (e) {
-        ar.send('FAILED', 'AR could not start in this browser. Try Safari on an AR-capable iPhone.');
-      }
-    } else if (isIOS) {
-      ar.send('UNAVAILABLE', 'AR is not available inside this browser. Open this website in Safari, or tap “Open USDZ directly (iPhone)” below.');
-    } else {
-      ar.send('UNAVAILABLE', 'AR is not available on this phone or browser. You can still rotate and zoom the 3D model here. To place it in your room, use Safari on a supported iPhone or Chrome on an ARCore-supported Android device.');
-    }
-  });
-  buttons.forEach(b => b.addEventListener('click', () => select(b.dataset.model, true)));
-  rotate.addEventListener('click', () => rotation.send('TOGGLE'));
-  reset.addEventListener('click', () => {
-    if (typeof viewer.jumpCameraToGoal !== 'function') return; // viewer library not loaded
-    viewer.cameraOrbit = '0deg 75deg auto';
-    viewer.fieldOfView = 'auto';
-    viewer.jumpCameraToGoal();
-  });
-
-  const requested = new URLSearchParams(location.search).get('model');
-  selected = 'cyclops'; // matches the src written in the HTML
-  document.documentElement.dataset.selectedModel = selected;
-  if (models[requested]) select(requested, false);
 })();
 </script>
 </body>
