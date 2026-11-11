@@ -3,6 +3,7 @@
 <style>*{box-sizing:border-box}body{margin:0;overflow:hidden;font-family:system-ui,sans-serif;background:#151b1d;color:white}a-scene{position:fixed!important;inset:0;width:100%!important;height:100%!important}#ar-controls,#ar-status-panel{position:fixed!important;display:block!important;z-index:10000!important;left:12px;right:12px;background:#152023e8;border:1px solid #ffffff40;border-radius:14px;padding:12px 16px}#ar-controls{top:max(12px,env(safe-area-inset-top))}#ar-status-panel{bottom:max(12px,env(safe-area-inset-bottom))}h1{font-size:1rem;margin:0 0 6px}p{margin:6px 0;font-size:.87rem;line-height:1.4}nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}a,button{color:white;background:#304349;border:1px solid #789096;border-radius:8px;font:inherit;font-size:.85rem;padding:10px;text-decoration:none;min-height:42px;cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid #e2ffb0}#detail{color:#c3d2d7;font-size:.77rem}.a-enter-vr{display:none!important}</style>
 <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
 <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.8/aframe/build/aframe-ar.js"></script>
+<script src="site-state.js"></script>
 <script>
 AFRAME.registerComponent('fit-house',{
   init(){
@@ -14,14 +15,14 @@ AFRAME.registerComponent('fit-house',{
       measurement.add(mesh.clone(true));
       measurement.updateMatrixWorld(true);
       const bounds=new T.Box3().setFromObject(measurement),size=bounds.getSize(new T.Vector3()),center=bounds.getCenter(new T.Vector3());
-      if(bounds.isEmpty()||![size.x,size.y,size.z].every(Number.isFinite)){window.houseState('error');return;}
+      if(bounds.isEmpty()||![size.x,size.y,size.z].every(Number.isFinite)){this.el.emit('model-fit-failed',null,false);return;}
       const scale=.9/Math.max(size.x,size.z,size.y,.001);
       this.el.object3D.scale.setScalar(scale);
       // Centre the house in all three axes before the presentation rotation.
       this.el.object3D.position.copy(center).multiplyScalar(-scale);
-      window.houseState('ready');
+      this.el.emit('model-fitted',null,false);
     });
-    this.el.addEventListener('model-error',()=>window.houseState('error'));
+    this.el.addEventListener('model-error',()=>this.el.emit('model-fit-failed',null,false));
   }
 });
 </script></head><body>
@@ -36,19 +37,22 @@ AFRAME.registerComponent('fit-house',{
 </a-entity>
 </a-marker><a-entity light="type:ambient; intensity:0.85"></a-entity><a-entity light="type:directional; intensity:0.8" position="-1 3 2"></a-entity><a-entity camera></a-entity></a-scene>
 <script>
+// Explicit state machines (see site-state.js and AGENTS.md): camera, tracking (kitten marker)
+// and model (house) are mirrored as data-*-state on <html>; the status lines are derived from them.
 (()=>{
- const state={found:false,model:'loading',cameraError:''},status=document.getElementById('status'),detail=document.getElementById('detail');
- function refresh(){
-  detail.textContent='Marker: '+(state.found?'FOUND':'waiting')+' · House: '+state.model;
-  status.textContent=state.cameraError||(state.model==='error'?'The house could not load. Check your connection and reload.':state.found?(state.model==='ready'?'Kitten found! The house is above the marker.':'Kitten found. Loading the house…'):'Point at the bordered kitten marker. Keep its entire black border in view.');
+ const status=document.getElementById('status'),detail=document.getElementById('detail');
+ const camera=SiteState.createMachine(SiteState.machines.camera),tracking=SiteState.createMachine(SiteState.machines.tracking),model=SiteState.createMachine(SiteState.machines.model);
+ const cameraProblem={insecure:'Open this page over HTTPS so the camera can start.',blocked:'Camera unavailable. Allow camera access and open this link in Chrome or Safari.',unsupported:'Camera unavailable. Allow camera access and open this link in Chrome or Safari.'};
+ function render(){
+  detail.textContent='Marker: '+(tracking.is('found')?'FOUND':'waiting')+' · House: '+model.state;
+  status.textContent=cameraProblem[camera.state]||(model.is('error')?'The house could not load. Check your connection and reload.':tracking.is('found')?(model.is('ready')?'Kitten found! The house is above the marker.':'Kitten found. Loading the house…'):'Point at the bordered kitten marker. Keep its entire black border in view.');
  }
- window.houseState=value=>{state.model=value;refresh();};
- const marker=document.getElementById('kitten');
- marker.addEventListener('markerFound',()=>{state.found=true;refresh();});
- marker.addEventListener('markerLost',()=>{state.found=false;refresh();});
- window.addEventListener('camera-error',()=>{state.cameraError='Camera unavailable. Allow camera access and open this link in Chrome or Safari.';refresh();});
+ [camera,tracking,model].forEach(machine=>machine.subscribe(render));
+ const target=document.getElementById('house');
+ target.addEventListener('model-fitted',()=>model.send('LOADED'));
+ target.addEventListener('model-fit-failed',()=>model.send('FAILED'));
+ SiteState.bindMarkerAR(document.getElementById('kitten'),camera,tracking);
  document.getElementById('rotate').addEventListener('click',()=>{const o=document.getElementById('turn').object3D;o.rotation.y+=Math.PI/2;});
  document.getElementById('reset').addEventListener('click',()=>{document.getElementById('turn').object3D.rotation.set(0,-25*Math.PI/180,0);});
- if(!window.isSecureContext){state.cameraError='Open this page over HTTPS so the camera can start.';refresh();}
 })();
 </script></body></html>

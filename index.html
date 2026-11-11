@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#151623">
 <title>TEC611 Lab 2 | WebAR 3D Gallery</title>
-<script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+<script src="site-state.js"></script>
+<script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js" onerror="SiteState.viewerLibraryFailed()"></script>
 <style>
 :root { color-scheme: dark; font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:#10121d; color:#f7f5ff; }
 * { box-sizing:border-box; }
@@ -73,6 +74,13 @@ button:focus-visible,a:focus-visible { outline:3px solid #ffe1f1; outline-offset
 <a href="B5.html">B5 · Interactive solar panel</a></nav></section>
 </main>
 <script>
+/*
+  Gallery behaviour as explicit state machines (see site-state.js and AGENTS.md):
+  model    loading -> ready | error, or unavailable if the viewer library fails
+  rotation spinning <-> paused
+  ar       idle | unavailable | failed (the message under the AR button)
+  The selected model is data, mirrored as data-selected-model on <html> and ?model= in the URL.
+*/
 (() => {
   const viewer = document.getElementById('viewer');
   const models = {
@@ -88,36 +96,37 @@ button:focus-visible,a:focus-visible { outline:3px solid #ffe1f1; outline-offset
   const reset = document.getElementById('reset');
   const usdz = document.getElementById('usdz-link');
   const loader = document.getElementById('loader');
-  let selected = 'cyclops';
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  function showARMessage(message) {
-    arFeedback.textContent = message;
-    arFeedback.hidden = false;
-  }
-  launchAR.addEventListener('click', () => {
-    arFeedback.hidden = true;
-    // The in-viewer AR slot disappears when <model-viewer> detects no AR support.
-    // This regular button remains visible and supplies an explanation instead.
-    if (viewer.canActivateAR && typeof viewer.activateAR === 'function') {
-      try {
-        Promise.resolve(viewer.activateAR()).catch(() => {
-          showARMessage('AR could not start. Try Safari on an AR-capable iPhone or Chrome on an ARCore-supported Android device.');
-        });
-      } catch (e) {
-        showARMessage('AR could not start in this browser. Try Safari on an AR-capable iPhone.');
-      }
-    } else if (isIOS) {
-      showARMessage('AR is not available inside this browser. Open this website in Safari, or tap “Open USDZ directly (iPhone)” below.');
-    } else {
-      showARMessage('AR is not available on this phone or browser. You can still rotate and zoom the 3D model here. To place it in your room, use Safari on a supported iPhone or Chrome on an ARCore-supported Android device.');
-    }
+
+  const model = SiteState.createMachine(SiteState.machines.model);
+  const rotation = SiteState.createMachine(SiteState.machines.rotation);
+  const ar = SiteState.createMachine(SiteState.machines.arLaunch);
+  let selected = null;
+
+  const loaderText = {
+    loading: 'Loading 3D model…',
+    ready: '3D ready · drag to rotate',
+    error: 'Model failed to load. Check HTTPS hosting.',
+    unavailable: '3D viewer could not load. Check your connection, then reload the page.'
+  };
+  model.subscribe(state => { loader.textContent = loaderText[state]; });
+  rotation.subscribe(state => {
+    viewer.autoRotate = state === 'spinning';
+    rotate.textContent = state === 'spinning' ? 'Pause rotation' : 'Resume rotation';
   });
-  buttons.forEach(b => b.addEventListener('click', () => {
-    const key = b.dataset.model;
+  ar.subscribe((state, { detail }) => {
+    if (state === 'idle') { arFeedback.hidden = true; return; }
+    arFeedback.textContent = detail;
+    arFeedback.hidden = false;
+  });
+  SiteState.bindModelViewer(viewer, model);
+
+  function select(key, updateURL) {
     if (key === selected || !models[key]) return;
     selected = key;
     const info = models[key];
+    document.documentElement.dataset.selectedModel = key;
     buttons.forEach(x => x.setAttribute('aria-pressed', String(x.dataset.model === key)));
     viewer.setAttribute('src', `models/${key}.glb`);
     viewer.setAttribute('ios-src', `models/${key}.usdz`);
@@ -126,20 +135,46 @@ button:focus-visible,a:focus-visible { outline:3px solid #ffe1f1; outline-offset
     cameraARLink.setAttribute('href', `marker-ar.html?model=${key}`);
     document.getElementById('model-title').textContent = info.title;
     document.getElementById('model-description').textContent = info.description;
-    loader.textContent = 'Loading 3D model…';
-    arFeedback.hidden = true;
-  }));
-  rotate.addEventListener('click', () => {
-    viewer.autoRotate = !viewer.autoRotate;
-    rotate.textContent = viewer.autoRotate ? 'Pause rotation' : 'Resume rotation';
+    model.send('LOAD', { key });
+    ar.send('RESET');
+    if (updateURL) {
+      const url = new URL(location.href);
+      url.searchParams.set('model', key);
+      history.replaceState(null, '', url);
+    }
+  }
+
+  launchAR.addEventListener('click', () => {
+    ar.send('REQUEST');
+    // The in-viewer AR slot disappears when <model-viewer> detects no AR support.
+    // This regular button remains visible and supplies an explanation instead.
+    if (viewer.canActivateAR && typeof viewer.activateAR === 'function') {
+      try {
+        Promise.resolve(viewer.activateAR()).catch(() => {
+          ar.send('FAILED', 'AR could not start. Try Safari on an AR-capable iPhone or Chrome on an ARCore-supported Android device.');
+        });
+      } catch (e) {
+        ar.send('FAILED', 'AR could not start in this browser. Try Safari on an AR-capable iPhone.');
+      }
+    } else if (isIOS) {
+      ar.send('UNAVAILABLE', 'AR is not available inside this browser. Open this website in Safari, or tap “Open USDZ directly (iPhone)” below.');
+    } else {
+      ar.send('UNAVAILABLE', 'AR is not available on this phone or browser. You can still rotate and zoom the 3D model here. To place it in your room, use Safari on a supported iPhone or Chrome on an ARCore-supported Android device.');
+    }
   });
+  buttons.forEach(b => b.addEventListener('click', () => select(b.dataset.model, true)));
+  rotate.addEventListener('click', () => rotation.send('TOGGLE'));
   reset.addEventListener('click', () => {
+    if (typeof viewer.jumpCameraToGoal !== 'function') return; // viewer library not loaded
     viewer.cameraOrbit = '0deg 75deg auto';
     viewer.fieldOfView = 'auto';
     viewer.jumpCameraToGoal();
   });
-  viewer.addEventListener('load', () => { loader.textContent = '3D ready · drag to rotate'; });
-  viewer.addEventListener('error', () => { loader.textContent = 'Model failed to load. Check HTTPS hosting.'; });
+
+  const requested = new URLSearchParams(location.search).get('model');
+  selected = 'cyclops'; // matches the src written in the HTML
+  document.documentElement.dataset.selectedModel = selected;
+  if (models[requested]) select(requested, false);
 })();
 </script>
 </body>

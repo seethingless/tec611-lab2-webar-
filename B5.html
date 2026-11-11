@@ -193,6 +193,7 @@
 
     </style>
 
+<script src="site-state.js"></script>
 <script src="lab-support.js"></script>
 </head>
 
@@ -784,308 +785,132 @@
     <script>
 
         /*
-        Model default values
+        B5 controls as one explicit state (see AGENTS.md).
+
+        Every button and slider sends an action to update(), a pure function
+        that returns the next state. render() is the only code that writes
+        to the model and to the control panel, so the sliders, the numbers
+        beside them and the model can never disagree, even after the
+        browser restores old slider positions on reload.
         */
 
         const defaultSettings = {
-
-            position: {
-                x: 0,
-                y: 0,
-                z: 0
-            },
-
-            rotation: {
-                x: 0,
-                y: 0,
-                z: 0
-            },
-
+            position: { x: 0, y: 0, z: 0 },
+            rotation: { x: 0, y: 0, z: 0 },
             scale: 0.20
-
         };
 
+        const movement = 0.10;
 
-        /*
-        Current model values
-        */
-
-        let modelPosition = {
-
-            x: defaultSettings.position.x,
-            y: defaultSettings.position.y,
-            z: defaultSettings.position.z
-
+        // direction: [axis, sign]
+        const moves = {
+            left: ["x", -1],
+            right: ["x", 1],
+            forward: ["z", -1],
+            backward: ["z", 1],
+            raise: ["y", 1],
+            lower: ["y", -1]
         };
 
-
-        let modelRotation = {
-
-            x: defaultSettings.rotation.x,
-            y: defaultSettings.rotation.y,
-            z: defaultSettings.rotation.z
-
-        };
-
-
-        let modelScale =
-            defaultSettings.scale;
-
-
-        /*
-        Obtain HTML elements
-        */
-
-        const modelRoot =
-            document.querySelector("#modelRoot");
-
-
-        const scaleControl =
-            document.querySelector("#scaleControl");
-
-
-        const rotateControl =
-            document.querySelector("#rotateControl");
-
-
-        const tiltControl =
-            document.querySelector("#tiltControl");
-
-
-        const scaleValue =
-            document.querySelector("#scaleValue");
-
-
-        const rotateValue =
-            document.querySelector("#rotateValue");
-
-
-        const tiltValue =
-            document.querySelector("#tiltValue");
-
-
-        /*
-        Update the model
-        */
-
-        function updateModel() {
-
-            modelRoot.setAttribute(
-                "position",
-
-                modelPosition.x + " " +
-                modelPosition.y + " " +
-                modelPosition.z
-            );
-
-
-            modelRoot.setAttribute(
-                "rotation",
-
-                modelRotation.x + " " +
-                modelRotation.y + " " +
-                modelRotation.z
-            );
-
-
-            modelRoot.setAttribute(
-                "scale",
-
-                modelScale + " " +
-                modelScale + " " +
-                modelScale
-            );
-
+        // Keeps repeated 0.10 steps exact (0.1 + 0.2 would otherwise be 0.30000000000000004).
+        function round(value) {
+            return Math.round(value * 1000) / 1000;
         }
 
+        function initialState() {
+            return {
+                position: { ...defaultSettings.position },
+                rotation: { ...defaultSettings.rotation },
+                scale: defaultSettings.scale
+            };
+        }
 
-        /*
-        Size slider
-        */
-
-        scaleControl.addEventListener(
-            "input",
-
-            function () {
-
-                modelScale =
-                    Number(scaleControl.value);
-
-
-                scaleValue.textContent =
-                    modelScale.toFixed(2);
-
-
-                updateModel();
-
+        function update(state, action) {
+            switch (action.type) {
+                case "scale":
+                    return { ...state, scale: action.value };
+                case "rotate":
+                    return { ...state, rotation: { ...state.rotation, y: action.value } };
+                case "tilt":
+                    return { ...state, rotation: { ...state.rotation, x: action.value } };
+                case "move": {
+                    const move = moves[action.direction];
+                    if (!move) return state;
+                    const [axis, sign] = move;
+                    return { ...state, position: { ...state.position, [axis]: round(state.position[axis] + sign * movement) } };
+                }
+                case "reset":
+                    return initialState();
+                default:
+                    return state;
             }
-        );
+        }
 
+        let state = initialState();
 
-        /*
-        Horizontal rotation slider
-        */
+        const modelRoot = document.querySelector("#modelRoot");
+        const controlPanel = document.querySelector("#controlPanel");
+        const scaleControl = document.querySelector("#scaleControl");
+        const rotateControl = document.querySelector("#rotateControl");
+        const tiltControl = document.querySelector("#tiltControl");
+        const scaleValue = document.querySelector("#scaleValue");
+        const rotateValue = document.querySelector("#rotateValue");
+        const tiltValue = document.querySelector("#tiltValue");
 
-        rotateControl.addEventListener(
-            "input",
+        function setControl(control, value) {
+            // Leave a slider alone while it already shows the value, so dragging stays smooth.
+            if (Number(control.value) !== value) control.value = value;
+        }
 
-            function () {
+        function render() {
+            const { position, rotation, scale } = state;
 
-                modelRotation.y =
-                    Number(rotateControl.value);
+            modelRoot.setAttribute("position", position.x + " " + position.y + " " + position.z);
+            modelRoot.setAttribute("rotation", rotation.x + " " + rotation.y + " " + rotation.z);
+            modelRoot.setAttribute("scale", scale + " " + scale + " " + scale);
 
+            setControl(scaleControl, scale);
+            setControl(rotateControl, rotation.y);
+            setControl(tiltControl, rotation.x);
 
-                rotateValue.textContent =
-                    modelRotation.y + "°";
+            scaleValue.textContent = scale.toFixed(2);
+            rotateValue.textContent = rotation.y + "°";
+            tiltValue.textContent = rotation.x + "°";
 
+            // Readable state for people, tests and agents: <div id="controlPanel" data-scale="0.2" ...>
+            controlPanel.dataset.scale = scale;
+            controlPanel.dataset.rotate = rotation.y;
+            controlPanel.dataset.tilt = rotation.x;
+            controlPanel.dataset.position = position.x + " " + position.y + " " + position.z;
+        }
 
-                updateModel();
+        function dispatch(action) {
+            state = update(state, action);
+            render();
+        }
 
-            }
-        );
+        scaleControl.addEventListener("input", function () {
+            dispatch({ type: "scale", value: Number(scaleControl.value) });
+        });
 
+        rotateControl.addEventListener("input", function () {
+            dispatch({ type: "rotate", value: Number(rotateControl.value) });
+        });
 
-        /*
-        Tilt slider
-        */
+        tiltControl.addEventListener("input", function () {
+            dispatch({ type: "tilt", value: Number(tiltControl.value) });
+        });
 
-        tiltControl.addEventListener(
-            "input",
-
-            function () {
-
-                modelRotation.x =
-                    Number(tiltControl.value);
-
-
-                tiltValue.textContent =
-                    modelRotation.x + "°";
-
-
-                updateModel();
-
-            }
-        );
-
-
-        /*
-        Position control buttons
-        */
-
+        // Called by the buttons' onclick attributes.
         function moveModel(direction) {
-
-            const movement = 0.10;
-
-
-            if (direction === "left") {
-
-                modelPosition.x -= movement;
-
-            }
-
-
-            if (direction === "right") {
-
-                modelPosition.x += movement;
-
-            }
-
-
-            if (direction === "forward") {
-
-                modelPosition.z -= movement;
-
-            }
-
-
-            if (direction === "backward") {
-
-                modelPosition.z += movement;
-
-            }
-
-
-            if (direction === "raise") {
-
-                modelPosition.y += movement;
-
-            }
-
-
-            if (direction === "lower") {
-
-                modelPosition.y -= movement;
-
-            }
-
-
-            updateModel();
-
+            dispatch({ type: "move", direction: direction });
         }
-
-
-        /*
-        Reset model
-        */
 
         function resetModel() {
-
-            modelPosition = {
-
-                x: defaultSettings.position.x,
-                y: defaultSettings.position.y,
-                z: defaultSettings.position.z
-
-            };
-
-
-            modelRotation = {
-
-                x: defaultSettings.rotation.x,
-                y: defaultSettings.rotation.y,
-                z: defaultSettings.rotation.z
-
-            };
-
-
-            modelScale =
-                defaultSettings.scale;
-
-
-            scaleControl.value =
-                defaultSettings.scale;
-
-
-            rotateControl.value =
-                defaultSettings.rotation.y;
-
-
-            tiltControl.value =
-                defaultSettings.rotation.x;
-
-
-            scaleValue.textContent =
-                defaultSettings.scale.toFixed(2);
-
-
-            rotateValue.textContent =
-                defaultSettings.rotation.y + "°";
-
-
-            tiltValue.textContent =
-                defaultSettings.rotation.x + "°";
-
-
-            updateModel();
-
+            dispatch({ type: "reset" });
         }
 
-
-        /*
-        Apply initial settings
-        */
-
-        updateModel();
+        render();
 
     </script>
 

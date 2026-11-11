@@ -1,4 +1,6 @@
-/* Shared hosting, navigation, fitting, and camera feedback for the lab examples. */
+/* Shared hosting, navigation, fitting, and camera feedback for the lab examples.
+   Needs site-state.js first. The status bar is derived from three explicit machines
+   (see AGENTS.md): camera, tracking and model, mirrored as data-*-state on <html>. */
 (() => {
   if (window.AFRAME && !AFRAME.components['fit-lab-model']) {
     AFRAME.registerComponent('fit-lab-model', {
@@ -21,10 +23,12 @@
     });
   }
   document.addEventListener('DOMContentLoaded', () => {
+    const page = location.pathname.split('/').pop();
+    const isPartB = /^B[1-5]\.html$/i.test(page);
     const nav = document.createElement('nav');
     nav.setAttribute('aria-label','Lab navigation');
     nav.style.cssText='position:fixed;left:10px;right:10px;top:10px;z-index:10000;display:flex;flex-wrap:wrap;gap:12px;padding:10px;background:#171827ed;color:white;border-radius:10px;font:14px system-ui';
-    for (const [label,href] of [[/^B[1-5]\.html$/i.test(location.pathname.split('/').pop())?'← Part B':'← Gallery',/^B[1-5]\.html$/i.test(location.pathname.split('/').pop())?'part-b.html':'index.html'],['A2','A2.html'],['B1','B1.html'],['B2','B2.html'],['B3','B3.html'],['B4','B4.html'],['B5','B5.html'],['Hiro marker','https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png']]) {
+    for (const [label,href] of [[isPartB?'← Part B':'← Gallery',isPartB?'part-b.html':'index.html'],['A2','A2.html'],['B1','B1.html'],['B2','B2.html'],['B3','B3.html'],['B4','B4.html'],['B5','B5.html'],['Hiro marker','https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png']]) {
       const a = document.createElement('a');
       a.textContent=label; a.href=href; a.style.color='#ffbfdc';
       if (label==='Hiro marker') {a.target='_blank';a.rel='noopener';}
@@ -40,17 +44,26 @@
     document.body.appendChild(status);
     const controls=document.getElementById('controlPanel');
     if(controls) {controls.style.bottom='62px';controls.style.maxHeight='45vh';controls.style.overflowY='auto';}
-    let tracking=false, ready=!document.querySelector('[gltf-model]'), cameraError='';
-    const refresh=()=>status.textContent=cameraError || 'Tracking: '+(tracking?'FOUND':'waiting')+' · Model: '+(ready?'ready':'loading')+'. Point the camera at a Hiro marker.';
-    const marker=document.querySelector('a-marker');
-    marker?.addEventListener('markerFound',()=>{tracking=true;refresh();});
-    marker?.addEventListener('markerLost',()=>{tracking=false;refresh();});
-    document.querySelectorAll('[gltf-model]').forEach(el=>{
-      el.addEventListener('model-loaded',()=>{ready=true;refresh();});
-      el.addEventListener('model-error',()=>{cameraError='Model could not load. Check your connection and reload.';refresh();});
+    // B3's own loading note sat underneath this status bar; the bar reports the same model state.
+    const pageLoadingNote=document.getElementById('loadingMessage');
+    if(pageLoadingNote) pageLoadingNote.hidden=true;
+
+    const models=document.querySelectorAll('[gltf-model]');
+    const camera=SiteState.createMachine(SiteState.machines.camera);
+    const tracking=SiteState.createMachine(SiteState.machines.tracking);
+    const model=SiteState.createMachine(SiteState.machines.model,{initial:models.length?'loading':'ready'});
+    const render=()=>{
+      if(camera.is('insecure')) status.textContent='Camera AR requires HTTPS or localhost.';
+      else if(camera.is('blocked')||camera.is('unsupported')) status.textContent='Camera unavailable. Allow camera access and open this HTTPS page in Chrome or Safari.';
+      else if(model.is('error')) status.textContent='Model could not load. Check your connection and reload.';
+      else status.textContent='Tracking: '+(tracking.is('found')?'FOUND':'waiting')+' · Model: '+(model.is('ready')?'ready':'loading')+'. Point the camera at a Hiro marker.';
+    };
+    [camera,tracking,model].forEach(machine=>machine.subscribe(render));
+    models.forEach(el=>{
+      el.addEventListener('model-loaded',()=>model.send('LOADED'));
+      el.addEventListener('model-error',()=>model.send('FAILED'));
     });
-    window.addEventListener('camera-error',()=>{cameraError='Camera unavailable. Allow camera access and open this HTTPS page in Chrome or Safari.';refresh();});
-    if(!window.isSecureContext) cameraError='Camera AR requires HTTPS or localhost.';
-    refresh();
+    SiteState.bindMarkerAR(document.querySelector('a-marker'),camera,tracking);
+    render();
   });
 })();
